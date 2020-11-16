@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048</title>
+    <style>
+        * {
+            margin: 0;
+            box-sizing: border-box;
+            padding: 0;
+        }
+        li {
+            list-style-type: none;
+        }
+
+        .app {
+            margin: 20px auto;
+            width: 450px;
+        }
+        .column {
+            margin: 20px auto;
+            border-radius: 4px;
+            padding: 0 5px;
+            height: 450px;
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 100px;
+            text-align: center;
+            background-color: rgb(187, 173, 160);
+            user-select: none;
+        }
+        .column ul {
+            display: flex;
+            width: 440px;
+        }
+        .column li {
+            margin: 10px 5px;
+            border-radius: 4px;
+            width: 100px;
+            height: 100px;
+            background-color: rgb(214, 204, 195);
+        }
+        .column ul:not(:first-child) {
+            margin-top: -10px;
+        }
+        .column li.is-new {
+            animation: newCell .08s ease-in;
+            animation-fill-mode: forwards;
+        }
+        @keyframes newCell {
+            0% {
+                transform: scale(.7);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .column li.num-2 {
+            color: rgb(119, 111, 101);
+            background-color: rgb(238, 228, 218);
+        }
+        .column li.num-4 {
+            color: rgb(118, 111, 100);
+            background-color: rgb(235, 223, 199);
+        }
+        .column li.num-8 {
+            color: rgb(248, 246, 241);
+            background-color: rgb(242, 177, 121);
+        }
+        .column li.num-16 {
+            color: rgb(247, 245, 239);
+            background-color: rgb(245, 149, 99);
+        }
+        .column li.num-32 {
+            color: rgb(245, 246, 240);
+            background-color: rgb(244, 123, 94);
+        }
+        .column li.num-64 {
+            color: rgb(242, 247, 242);
+            background-color: rgb(245, 92, 58);
+        }
+        .column li.num-128 {
+            color: rgb(246, 245, 242);
+            background-color: rgb(236, 205, 112);
+        }
+        .column li.num-256 {
+            color: rgb(247, 246, 238);
+            background-color: rgb(236, 203, 96);
+        }
+        .column li.num-512 {
+            color: rgb(249, 245, 240);
+            background-color: rgb(235, 199, 79);
+        }
+        .column li.num-1024 {
+            color: rgb(248, 245, 240);
+            background-color: rgb(237, 197, 63);
+        }
+        .column li.num-2048 {
+            color: rgb(248, 245, 240);
+            background-color: rgb(238, 194, 46);
+        }
+
+        .score-wrap {
+            margin: 20px auto;
+        }
+        .btn-wrap {
+            display: flex;
+        }
+        .btn {
+            margin-right: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 10px;
+            width: 100px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="column"></div>
+        <div class="score-wrap">
+            <p>score: <span class="score"></span></p>
+            <p>high score: <span class="high-score"></span></p>
+        </div>
+        <div class="btn-wrap">
+            <div class="btn btn-refresh">重新开始</div>
+            <div class="btn btn-reset">回撤一步</div>
+        </div>
+    </div>
+
+    <script>
+        const LEN = 4;
+        const KEYCODES = {
+            37: 'LEFT',
+            38: 'UP',
+            39: 'RIGHT',
+            40: 'DOWN'
+        };
+        const ENDSCORE = 2048;
+
+        let array2048Rows = [],     //  行集合
+            array2048Columns = [],  //  列集合
+            prevArray2048Rows = {}, //  上一步操作,行集合
+            gamesHtml = '',
+            score = 0,
+            prevScore = 0;
+            isDone = false;
+
+        let gamesWrap = document.querySelector('.column'),
+            scoreWrap = document.querySelector('.score'),
+            highScoreWrap = document.querySelector('.high-score'),
+            btnRefresh = document.querySelector('.btn-refresh'),
+            btnReset = document.querySelector('.btn-reset');
+
+        let cellFactory = () => ({ num: 0, isNew: false });
+        
+        gameInitialize();
+
+        function gameInitialize() {
+            array2048Rows = [];
+            for (let i = 0; i < LEN; i++) {
+                let temp = [];
+                for (let j = 0; j < LEN; j++) {
+                    temp.push(cellFactory());
+                }
+                array2048Rows.push(temp);
+            }
+            prevArray2048Rows = [];
+            array2048Columns = [];
+            score = 0;
+            prevScore = 0;
+            isDone = false;
+
+            fillCell();
+            fillCell();
+            renderGameHtml();
+        }
+
+        function fillCell() {
+            let { blankCell } = getBlankCell();
+
+            if (blankCell.num) {
+                return fillCell();
+            } else {
+                blankCell.num = Math.random() > .9 ? 4 : 2;
+                blankCell.isNew = true;
+            }
+        }
+
+        function renderGameHtml() {
+            gamesWrap.innerHTML = '';
+            for (let i = 0; i < LEN; i++) {
+                let ul = document.createElement('ul');
+                gamesHtml = '';
+                for (let j = 0; j < LEN; j++) {
+                    let item = array2048Rows[i][j],
+                        li = '';
+                    if (item.num) {
+                        li = `<li class="num-${ item.num } ${ item.isNew ? 'is-new' : '' }">${ item.num }</li>`;
+                    } else {
+                        li = '<li></li>'
+                    }
+                    gamesHtml += li;
+                }
+                ul.innerHTML = gamesHtml;
+                gamesWrap.appendChild(ul);
+            }
+
+            renderScore();
+            setTimeout(() => {
+                if (isDone) {
+                    if (confirm('已达成2048，继续本局游戏吗？')) {
+                        gameInitialize();
+                    } else {
+                        isDone = false;
+                    }
+                }
+            }, 0);  //  等待DOM更新
+        }
+
+        function renderScore() {
+            scoreWrap.innerHTML = score;
+            let highScore = localStorage.getItem('high-score');
+
+            if (highScore) {
+                highScore = parseInt(highScore);
+                if (score > highScore) {
+                    localStorage.setItem('high-score', score);
+                    highScore = score;
+                }
+            } else {
+                localStorage.setItem('high-score', score);
+                highScore = score;
+            }
+            
+            highScoreWrap.innerHTML = highScore;
+        }
+
+        function convertRowsAndColumns(arr, arr1) {
+            arr.length = 0;
+
+            for (let i = 0; i < LEN; i++) {
+                let temp = [];
+                for (let j = 0; j < LEN; j++) {
+                    let column = arr1[j];
+                    temp.push(column[i]);
+                }
+                arr.push(temp);
+            }
+        }
+
+        function getBlankCell() {
+            //  空白位置集合数组
+            let blankValueCollections = [];
+
+            blankValueCollections = array2048Rows.reduce((accumulator, currItem) => {
+                return accumulator.concat(currItem.filter((ele) => !ele.num));
+            }, []);
+
+            let pos = Math.floor(Math.random() * blankValueCollections.length);
+
+            return {
+                //  空白位置集合数组的长度
+                len: blankValueCollections.length,
+                //  随机位置空白元素
+                blankCell: blankValueCollections[pos]
+            };
+        }
+        //  检查操作前后的数组元素是否有变化
+        function checkChange(copyRows) {
+            //  copyRows 保存了操作前的2048数组
+            for (let i = 0; i < LEN; i++) {
+                for (let j = 0; j < LEN; j++) {
+                    //  如果相同位置的值不同代表有变化
+                    if (array2048Rows[i][j].num !== copyRows[i][j].num) {
+                        return true;
+                    }
+                }
+            }
+            return false;    //  无变化
+        }
+
+        //  检查是否依然拥有可操作的可能
+        function checkMoveCell() {
+            let { len } = getBlankCell();
+            //  有空白位置就有操作空间
+            if (len) { return true; }
+
+            //  没有空白位置后，检查是否依然有可合并的值
+            let hasMoveCell = false;     //  没有可合并值
+            
+            for (let i = 0; i < LEN; i++) {
+                for (let j = 0; j < LEN - 1; j++) {
+                    //  如果行中拥有可合并的值返回 true
+                    let item = array2048Rows[i][j],
+                        nextItem = array2048Rows[i][j + 1];
+
+                    if (item.num === nextItem.num) {
+                        hasMoveCell = true;
+                        break;
+                    }
+                }
+
+                for (let j = 0; j < LEN - 1; j++) {
+                    //  如果列中拥有可合并的值返回 true
+                    let item = array2048Columns[i][j],
+                        nextItem = array2048Columns[i][j + 1];
+
+                    if (item.num === nextItem.num) {
+                        hasMoveCell = true;
+                        break;
+                    }
+                }
+            }
+
+            return hasMoveCell;
+        }
+
+        function resetStep() {
+            if (prevArray2048Rows.length) {
+                array2048Rows = prevArray2048Rows.map(row => (row.map(ele => {
+                    if (ele.isNew) {
+                        ele.isNew = false;
+                    }
+                    return ele;
+                })));
+                score = prevScore;
+                renderGameHtml();
+                prevArray2048Rows = [];
+            }
+        }
+
+        function copyPrevRows() {
+            let prevRows = [];
+            for (let i = 0; i < LEN; i++) {
+                let temp = [];
+                for (let j = 0; j < LEN; j++) {
+                    temp.push(Object.assign({}, array2048Rows[i][j]));
+                }
+                prevRows.push(temp);
+            }
+            return prevRows;
+        }
+
+        function mergeCloserSameValue(arr, direction) {
+            let localScore = 0;
+            for (let i = 0; i < LEN; i++) {
+                let temp = [], temp1 = [];
+                
+                if (direction === 'RIGHT' || direction === 'DOWN') {
+                    arr[i].reverse();
+                }
+                for (let j = 0; j < LEN; j++) {
+                    if (arr[i][j].num) {
+                        temp.push(Object.assign({}, arr[i][j], { isNew: false }));
+                    } else {
+                        temp1.push(Object.assign({}, arr[i][j], { isNew: false }));
+                    }
+                }
+                arr[i] = temp.concat(temp1);
+
+                for (let j = 0; j < LEN - 1; j++) {
+                    let item = arr[i][j],
+                        nextItem = arr[i][j + 1];
+
+                    if (item.num !== 0 && item.num === nextItem.num) {
+                        let resultNum = item.num + nextItem.num;
+                        arr[i][j].num = resultNum;
+                        localScore += resultNum;
+                        arr[i].splice(j + 1, 1);
+                        arr[i].push(cellFactory());
+                        if (resultNum === ENDSCORE) {
+                            isDone = true;
+                        }
+                    }
+                }
+
+                if (direction === 'RIGHT' || direction === 'DOWN') {
+                    arr[i].reverse();
+                }
+            }
+
+            if (direction === 'UP' || direction === 'DOWN') {
+                convertRowsAndColumns(array2048Rows, array2048Columns);
+            }
+            return localScore;
+        }
+
+        function moveCell(direction) {
+            if (!direction) return;
+            convertRowsAndColumns(array2048Columns, array2048Rows);
+            let hasMoveCell = checkMoveCell(direction);
+            if (hasMoveCell) {
+                let prevRows = copyPrevRows();
+                let localScore;
+
+                switch (direction) {
+                    case 'LEFT':
+                    case 'RIGHT':
+                        localScore = mergeCloserSameValue(array2048Rows, direction);
+                        break;
+                    case 'UP':
+                    case 'DOWN':
+                        localScore = mergeCloserSameValue(array2048Columns, direction);
+                        break;
+                }
+
+                if (checkChange(prevRows)) {
+                    prevArray2048Rows = prevRows;
+                    prevScore = score;
+                    score += localScore;
+                    fillCell();
+                    renderGameHtml();
+                } else {
+                    score = prevScore;
+                }
+            } else {
+                if (confirm('无可移动选项，重新开始游戏？')) {
+                    gameInitialize();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function (e) {
+            moveCell(KEYCODES[e.keyCode]);
+        }, false);
+
+        btnRefresh.addEventListener('click', function () {
+            if (confirm('是否重新开始一局游戏？')) {
+                gameInitialize();
+            }
+        }, false);
+
+        btnReset.addEventListener('click', resetStep, false);
+    </script>
+</body>
+</html>
