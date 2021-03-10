@@ -351,7 +351,7 @@
             for (let i = 0; i < LEN; i++) {
                 let temp = [], temp1 = [];
                 
-                if (direction === 'RIGHT' || direction === 'DOWN') {
+                if (direction === KEYCODES[39] || direction === KEYCODES[40]) {
                     arr[i].reverse();
                 }
                 for (let j = 0; j < LEN; j++) {
@@ -379,12 +379,12 @@
                     }
                 }
 
-                if (direction === 'RIGHT' || direction === 'DOWN') {
+                if (direction === KEYCODES[39] || direction === KEYCODES[40]) {
                     arr[i].reverse();
                 }
             }
 
-            if (direction === 'UP' || direction === 'DOWN') {
+            if (direction === KEYCODES[38] || direction === KEYCODES[40]) {
                 convertRowsAndColumns(array2048Rows, array2048Columns);
             }
             return localScore;
@@ -399,12 +399,12 @@
                 let localScore;
 
                 switch (direction) {
-                    case 'LEFT':
-                    case 'RIGHT':
+                    case KEYCODES[37]:
+                    case KEYCODES[39]:
                         localScore = mergeCloserSameValue(array2048Rows, direction);
                         break;
-                    case 'UP':
-                    case 'DOWN':
+                    case KEYCODES[38]:
+                    case KEYCODES[40]:
                         localScore = mergeCloserSameValue(array2048Columns, direction);
                         break;
                 }
