@@ -148,7 +148,8 @@
             gamesHtml = '',
             score = 0,
             prevScore = 0;
-            isDone = false;
+            isDone = false,
+            isCompleted = false;
 
         let gamesWrap = document.querySelector('.column'),
             scoreWrap = document.querySelector('.score'),
@@ -173,7 +174,8 @@
             array2048Columns = [];
             score = 0;
             prevScore = 0;
-            isDone = false;
+            isDone = false,
+            isCompleted = false;
 
             fillCell();
             fillCell();
@@ -212,11 +214,13 @@
 
             renderScore();
             setTimeout(() => {
+                if (isCompleted) { return; }
                 if (isDone) {
                     if (confirm('已达成2048，继续本局游戏吗？')) {
-                        gameInitialize();
-                    } else {
                         isDone = false;
+                        isCompleted = true;
+                    } else {
+                        gameInitialize();
                     }
                 }
             }, 0);  //  等待DOM更新
