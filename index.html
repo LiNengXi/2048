@@ -134,17 +134,17 @@
 
     <script>
         const LEN = 4;
-        const KEYCODES = {
+        const KEY_CODES = {
             37: 'LEFT',
             38: 'UP',
             39: 'RIGHT',
             40: 'DOWN'
         };
-        const ENDSCORE = 2048;
+        const END_SCORE = 2048;
 
         let array2048Rows = [],     //  行集合
             array2048Columns = [],  //  列集合
-            prevArray2048Rows = {}, //  上一步操作,行集合
+            prevArray2048Rows = [], //  上一步操作,行集合
             gamesHtml = '',
             score = 0,
             prevScore = 0;
@@ -355,7 +355,7 @@
             for (let i = 0; i < LEN; i++) {
                 let temp = [], temp1 = [];
                 
-                if (direction === KEYCODES[39] || direction === KEYCODES[40]) {
+                if (direction === KEY_CODES[39] || direction === KEY_CODES[40]) {
                     arr[i].reverse();
                 }
                 for (let j = 0; j < LEN; j++) {
@@ -377,18 +377,18 @@
                         localScore += resultNum;
                         arr[i].splice(j + 1, 1);
                         arr[i].push(cellFactory());
-                        if (resultNum === ENDSCORE) {
+                        if (resultNum === END_SCORE) {
                             isDone = true;
                         }
                     }
                 }
 
-                if (direction === KEYCODES[39] || direction === KEYCODES[40]) {
+                if (direction === KEY_CODES[39] || direction === KEY_CODES[40]) {
                     arr[i].reverse();
                 }
             }
 
-            if (direction === KEYCODES[38] || direction === KEYCODES[40]) {
+            if (direction === KEY_CODES[38] || direction === KEY_CODES[40]) {
                 convertRowsAndColumns(array2048Rows, array2048Columns);
             }
             return localScore;
@@ -403,12 +403,12 @@
                 let localScore;
 
                 switch (direction) {
-                    case KEYCODES[37]:
-                    case KEYCODES[39]:
+                    case KEY_CODES[37]:
+                    case KEY_CODES[39]:
                         localScore = mergeCloserSameValue(array2048Rows, direction);
                         break;
-                    case KEYCODES[38]:
-                    case KEYCODES[40]:
+                    case KEY_CODES[38]:
+                    case KEY_CODES[40]:
                         localScore = mergeCloserSameValue(array2048Columns, direction);
                         break;
                 }
@@ -430,7 +430,7 @@
         }
 
         document.addEventListener('keydown', function (e) {
-            moveCell(KEYCODES[e.keyCode]);
+            moveCell(KEY_CODES[e.keyCode]);
         }, false);
 
         btnRefresh.addEventListener('click', function () {
